@@ -1,3 +1,5 @@
+const socket = io();
+
 const loginForm = document.getElementById("welcome-form");
 const messagesSection = document.getElementById("messages-section");
 const messagesList = document.getElementById("messages-list");
@@ -5,11 +7,22 @@ const addMessageForm = document.getElementById("add-messages-form");
 const userNameInput = document.getElementById("username");
 const messageContentInput = document.getElementById("message-content");
 
-let username;
+socket.on("message", ({ author, content }) => addMessage(author, content));
+socket.on("newUser", userInfo =>
+  addMessage("ChatBot", `${userInfo} has joined the conversation!`)
+);
+socket.on("leaveUser", logoutUser => {
+  console.log("logout user!");
+  console.log("logout user:", logoutUser);
+  //   addMessage("ChatBot", `${logoutUser} has left the conversation... :(`);
+});
+
+var username = "";
 
 const login = () => {
   if (userNameInput) {
     username = userNameInput.value;
+    socket.emit("logged", username);
     loginForm.classList.remove("show");
     messagesSection.classList.add("show");
   } else {
@@ -18,13 +31,24 @@ const login = () => {
 };
 
 const addMessage = (user, messeage) => {
+  console.log(user, messeage);
   const li = document.createElement("li");
   li.classList.add("message");
-  if (user != username) {
+  if (user != username && user != "ChatBot") {
     li.innerHTML = `
     <h3 class="message__author">${user}</h3>
     <div class="message__content">
      ${messeage}
+    </div>`;
+  } else if (user === "ChatBot") {
+    li.innerHTML = `
+    <h3 class="message__author">Chat Bot</h3>
+    <div class="message__content">
+        <p>
+            <i>
+                ${messeage}
+            </i>
+        </p>
     </div>`;
   } else {
     li.classList.add("message--self");
@@ -37,11 +61,17 @@ const addMessage = (user, messeage) => {
   messagesList.appendChild(li);
 };
 
-const sendMesseage = name => {
-  if (messageContentInput.value) {
-    addMessage(name, messageContentInput.value);
+const sendMesseage = () => {
+  let messageContent = messageContentInput.value;
+  let user = username;
+
+  if (!messageContent.length) {
+    alert("Wpisz wiadomość!");
+  } else {
+    addMessage(user, messageContent);
+    socket.emit("message", { author: user, content: messageContent });
     messageContentInput.value = "";
-  } else alert("Wpisz wiadomość");
+  }
 };
 
 loginForm.addEventListener("submit", event => {
@@ -51,5 +81,5 @@ loginForm.addEventListener("submit", event => {
 
 addMessageForm.addEventListener("submit", event => {
   event.preventDefault();
-  sendMesseage(username);
+  sendMesseage();
 });
