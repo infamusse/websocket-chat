@@ -11,11 +11,9 @@ socket.on("message", ({ author, content }) => addMessage(author, content));
 socket.on("newUser", userInfo =>
   addMessage("ChatBot", `${userInfo} has joined the conversation!`)
 );
-socket.on("leaveUser", logoutUser => {
-  console.log("logout user!");
-  console.log("logout user:", logoutUser);
-  //   addMessage("ChatBot", `${logoutUser} has left the conversation... :(`);
-});
+socket.on("removeUser", user =>
+  addMessage("ChatBot", `${user} has left the conversation... :(`)
+);
 
 var username = "";
 
