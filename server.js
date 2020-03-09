@@ -32,9 +32,9 @@ io.on("connection", socket => {
   socket.on("disconnect", () => {
     console.log("Oh, socket " + socket.id + " has left");
     if (users.length > 0) {
-      const user = users.find(user => user.id == socket.id).name;
-      socket.broadcast.emit("removeUser", user);
-      users.splice(user, 1);
+      const user = users.find(user => user.id === socket.id).name;
+      users = users.filter(user => user.id !== socket.id);
+      io.sockets.emit("removeUser", user);
     }
   });
 
